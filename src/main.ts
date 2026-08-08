@@ -1,6 +1,7 @@
 import {
 	MarkdownView,
 	Notice,
+	Platform,
 	Plugin,
 	debounce,
 	type Debouncer,
@@ -94,6 +95,10 @@ export default class FindInNotePlugin extends Plugin {
 	}
 
 	private async announceHotkeyConflict(): Promise<void> {
+		// There is no keyboard shortcut to fight over on a phone, so the notice
+		// would be a wall of irrelevant text in front of a small screen.
+		if (Platform.isMobile) return;
+
 		const data = ((await this.loadData()) ?? {}) as PluginData;
 		if (data.hotkeyNoticeShown) return;
 

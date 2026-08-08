@@ -18,18 +18,34 @@ export class SearchBar {
 	private readonly counter: HTMLElement;
 
 	constructor(parent: HTMLElement, handlers: SearchBarHandlers) {
-		this.el = parent.createDiv({ cls: 'find-in-note-bar' });
+		this.el = parent.createDiv({
+			cls: 'find-in-note-bar',
+			attr: { role: 'search' },
+		});
 
 		this.input = this.el.createEl('input', {
 			cls: 'find-in-note-input',
 			attr: {
 				type: 'text',
 				placeholder: 'Find in note',
+				// A placeholder is not a label: it disappears the moment typing
+				// starts, and a screen reader would then announce nothing.
+				'aria-label': 'Find in note',
 				spellcheck: 'false',
+				// Phones otherwise capitalise the first letter and quietly
+				// "correct" the query into a different word.
+				autocapitalize: 'off',
+				autocorrect: 'off',
+				enterkeyhint: 'search',
 			},
 		});
 
-		this.counter = this.el.createSpan({ cls: 'find-in-note-counter' });
+		this.counter = this.el.createSpan({
+			cls: 'find-in-note-counter',
+			// Announced as it changes, so the match count is not information
+			// available only to people who can see it.
+			attr: { role: 'status', 'aria-live': 'polite' },
+		});
 		this.setCount(0, 0);
 
 		this.addButton('chevron-up', 'Previous match', () =>
@@ -86,6 +102,13 @@ export class SearchBar {
 
 	setCount(current: number, total: number): void {
 		this.counter.setText(total === 0 ? '0/0' : `${current + 1}/${total}`);
+		// "3/17" read aloud is "three seventeen"; spell it out for the announcer.
+		this.counter.setAttr(
+			'aria-label',
+			total === 0
+				? 'No matches'
+				: `Match ${current + 1} of ${total}`,
+		);
 		this.el.toggleClass('find-in-note-empty', total === 0);
 	}
 
