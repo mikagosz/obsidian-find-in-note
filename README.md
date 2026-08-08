@@ -49,11 +49,24 @@ Until then the plugin is still fully usable from the command palette
 
 ## Mobile
 
-The plugin uses no desktop-only APIs, so it installs on mobile — but it was
-built and tested on desktop. There is no Cmd+F on a phone, so the command
-palette is the way in, and highlighting depends on the CSS Custom Highlight API
-being present in the device's web engine. Where it is missing, the plugin says
-so instead of failing quietly.
+The plugin uses no desktop-only APIs, and the mobile case is built for rather
+than merely allowed:
+
+- The bar shrinks to the width it is given instead of running off the edge — the
+  same rule that fixes a narrow side pane on the desktop.
+- Buttons get finger-sized targets, and the field is set at 16px so iOS does not
+  zoom the page the moment it is focused.
+- Autocapitalise and autocorrect are off, so the phone stops turning the query
+  into a different word.
+- The hotkey notice is desktop-only. There is no shortcut to argue over on a
+  phone, so nothing is said; the command palette is the way in.
+
+Highlighting still depends on the CSS Custom Highlight API being present in the
+device's web engine. Where it is missing, the plugin says so rather than failing
+quietly.
+
+Honest limit: this has not been run on a physical phone. The code paths above are
+deliberate, not incidental, but a real device test is still owed.
 
 ## Known ceiling
 

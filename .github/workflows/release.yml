@@ -43,8 +43,16 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   tag="${GITHUB_REF#refs/tags/}"
+                  files="main.js manifest.json ${{ steps.styles.outputs.exists == 'true' && 'styles.css' || '' }}"
 
-                  gh release create "$tag" \
-                    --title="$tag" \
-                    --draft \
-                    main.js manifest.json ${{ steps.styles.outputs.exists == 'true' && 'styles.css' || '' }}
+                  # The release is normally created by hand first, so that its
+                  # author is a person and not this bot. Creating another one
+                  # here would leave two releases on the same tag, the second a
+                  # draft nobody looks at, while this workflow still reports
+                  # success. Attach the attested build to the existing release
+                  # instead, and only create one when there is none.
+                  if gh release view "$tag" >/dev/null 2>&1; then
+                    gh release upload "$tag" $files --clobber
+                  else
+                    gh release create "$tag" --title="$tag" --draft $files
+                  fi

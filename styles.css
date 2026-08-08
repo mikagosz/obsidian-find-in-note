@@ -26,6 +26,10 @@
 	position: absolute;
 	top: var(--size-4-2);
 	right: var(--size-4-4);
+	/* Never wider than the note it floats over. One flexible layout instead of
+	   a breakpoint: a narrow side pane on the desktop has the same problem a
+	   phone does, and both are fixed by letting the bar shrink. */
+	max-width: calc(100% - 2 * var(--size-4-4));
 	z-index: var(--layer-popover);
 	display: flex;
 	align-items: center;
@@ -38,12 +42,15 @@
 }
 
 .find-in-note-input {
-	width: 16em;
+	flex: 1 1 16em;
+	/* A flex item will not shrink past its content width without this. */
+	min-width: 6em;
 	height: var(--input-height);
 	font-size: var(--font-ui-small);
 }
 
 .find-in-note-counter {
+	flex: 0 0 auto;
 	min-width: 4em;
 	padding: 0 var(--size-2-2);
 	color: var(--text-muted);
@@ -59,4 +66,22 @@
 
 .find-in-note-button {
 	flex: 0 0 auto;
+}
+
+/* Touch. A finger is not a mouse pointer: it needs a target it can actually
+   hit, and it has no hover state to aim with. */
+.is-mobile .find-in-note-bar {
+	left: var(--size-4-2);
+	right: var(--size-4-2);
+	max-width: none;
+}
+
+.is-mobile .find-in-note-button {
+	width: 2.5rem;
+	height: 2.5rem;
+}
+
+.is-mobile .find-in-note-input {
+	/* iOS zooms the whole page when a focused field is under 16px. */
+	font-size: 16px;
 }
