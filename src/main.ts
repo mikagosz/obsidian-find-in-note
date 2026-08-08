@@ -1,20 +1,14 @@
 import {
+	type Debouncer,
+	debounce,
+	type KeymapEventHandler,
 	MarkdownView,
 	Notice,
 	Platform,
 	Plugin,
-	debounce,
-	type Debouncer,
-	type KeymapEventHandler,
 	type ViewState,
 } from 'obsidian';
-import {
-	clear,
-	findRanges,
-	isSupported,
-	paint,
-	revealIfOffScreen,
-} from './highlighter';
+import { clear, findRanges, isSupported, paint, revealIfOffScreen } from './highlighter';
 import { SearchBar } from './searchBar';
 
 /** Marks the element the bar is positioned against. */
@@ -67,8 +61,7 @@ export default class FindInNotePlugin extends Plugin {
 			// the mechanism Obsidian actually provides for this.
 			hotkeys: [{ modifiers: ['Mod'], key: 'F' }],
 			checkCallback: (checking) => {
-				const view =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
+				const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 				if (!view) return false;
 				if (!checking) void this.open(view);
 				return true;
@@ -80,8 +73,7 @@ export default class FindInNotePlugin extends Plugin {
 		this.registerEvent(
 			this.app.workspace.on('active-leaf-change', () => {
 				if (!this.session) return;
-				const active =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
+				const active = this.app.workspace.getActiveViewOfType(MarkdownView);
 				// Switching the view mode counts as a leaf change, so only a
 				// move to a genuinely different note may close the session.
 				if (active === this.session.view) return;
@@ -124,7 +116,7 @@ export default class FindInNotePlugin extends Plugin {
 		}
 
 		const previousState = cloneState(view.leaf.getViewState());
-		const restoreState = previousState.state?.['mode'] !== 'preview';
+		const restoreState = previousState.state?.mode !== 'preview';
 		if (restoreState) {
 			await view.leaf.setViewState({
 				...previousState,
@@ -160,7 +152,7 @@ export default class FindInNotePlugin extends Plugin {
 
 		// Only while the bar is open, so Escape keeps its usual meaning the rest
 		// of the time.
-		const escape = this.app.scope.register([], 'Escape', () => {
+		const escapeHandler = this.app.scope.register([], 'Escape', () => {
 			this.close();
 			return false;
 		});
@@ -173,7 +165,7 @@ export default class FindInNotePlugin extends Plugin {
 			restoreState,
 			observer,
 			rescan,
-			escape,
+			escape: escapeHandler,
 			ranges: [],
 			index: 0,
 		};
@@ -238,10 +230,6 @@ function cloneState(state: ViewState): ViewState {
 
 /** The element that actually scrolls; the container around it does not. */
 function scrollerFor(view: MarkdownView): HTMLElement {
-	const scroller = view.previewMode.containerEl.querySelector(
-		'.markdown-preview-view',
-	);
-	return scroller instanceof HTMLElement
-		? scroller
-		: view.previewMode.containerEl;
+	const scroller = view.previewMode.containerEl.querySelector('.markdown-preview-view');
+	return scroller instanceof HTMLElement ? scroller : view.previewMode.containerEl;
 }
