@@ -1,0 +1,62 @@
+/*
+ * The two highlight layers. ::highlight() can only paint — it cannot move or
+ * resize anything — which is exactly why the note keeps its layout.
+ *
+ * The colours are literal rather than theme variables on purpose. Obsidian's
+ * own --text-highlight-bg is translucent, which reads as a faint wash on a dark
+ * background; a search hit has to be unmissable. Both fills are light in either
+ * theme, so the dark ink on top stays legible without a per-theme override.
+ */
+::highlight(find-in-note-match) {
+	background-color: #ffe066;
+	color: #1c1c1c;
+}
+
+::highlight(find-in-note-current) {
+	background-color: #ff8c26;
+	color: #1c1c1c;
+}
+
+/* The bar is positioned against the view, so the view has to be the origin. */
+.find-in-note-host {
+	position: relative;
+}
+
+.find-in-note-bar {
+	position: absolute;
+	top: var(--size-4-2);
+	right: var(--size-4-4);
+	z-index: var(--layer-popover);
+	display: flex;
+	align-items: center;
+	gap: var(--size-2-1);
+	padding: var(--size-2-2) var(--size-2-3);
+	background-color: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	box-shadow: var(--shadow-s);
+}
+
+.find-in-note-input {
+	width: 16em;
+	height: var(--input-height);
+	font-size: var(--font-ui-small);
+}
+
+.find-in-note-counter {
+	min-width: 4em;
+	padding: 0 var(--size-2-2);
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	font-variant-numeric: tabular-nums;
+	text-align: center;
+}
+
+/* A query with no hits should be visible without reading the counter. */
+.find-in-note-empty .find-in-note-input {
+	color: var(--text-error);
+}
+
+.find-in-note-button {
+	flex: 0 0 auto;
+}
