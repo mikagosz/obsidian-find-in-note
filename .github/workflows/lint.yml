@@ -12,8 +12,11 @@ jobs:
 
         strategy:
             matrix:
-                node-version: [20.x, 22.x, 24.x]
+                # 20.x is deliberately absent: `npm run check` runs tests/*.ts
+                # directly and relies on Node's own type stripping, which landed
+                # in 22.6. On 20 it fails with ERR_UNKNOWN_FILE_EXTENSION.
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+                node-version: [22.x, 24.x]
 
         steps:
             - uses: actions/checkout@v6
