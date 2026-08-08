@@ -31,16 +31,16 @@ jobs:
         run: npm ci
 
       - name: Lint i format (Biome)
-        run: npx biome ci .
+        run: npm run lint -- --reporter=github
 
       - name: Reguly Obsidiana
-        run: npx eslint .
+        run: npm run lint:obsidian
 
       - name: Typy
         run: npx tsc --noEmit
 
       - name: Testy
-        run: npx vitest run
+        run: npm run check
 
       - name: Build
         run: npm run build
