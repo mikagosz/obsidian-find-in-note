@@ -48,19 +48,13 @@ export class SearchBar {
 		});
 		this.setCount(0, 0);
 
-		this.addButton('chevron-up', 'Previous match', () =>
-			handlers.onStep(-1),
-		);
+		this.addButton('chevron-up', 'Previous match', () => handlers.onStep(-1));
 		this.addButton('chevron-down', 'Next match', () => handlers.onStep(1));
 		this.addButton('x', 'Close', handlers.onClose);
 
 		// Typing repaints the whole note, so let the user finish a keystroke
 		// burst first. 120 ms is short enough to still feel live.
-		const notify = debounce(
-			() => handlers.onQuery(this.input.value),
-			120,
-			true,
-		);
+		const notify = debounce(() => handlers.onQuery(this.input.value), 120, true);
 		this.input.addEventListener('input', () => notify());
 
 		this.input.addEventListener('keydown', (event) => {
@@ -105,9 +99,7 @@ export class SearchBar {
 		// "3/17" read aloud is "three seventeen"; spell it out for the announcer.
 		this.counter.setAttr(
 			'aria-label',
-			total === 0
-				? 'No matches'
-				: `Match ${current + 1} of ${total}`,
+			total === 0 ? 'No matches' : `Match ${current + 1} of ${total}`,
 		);
 		this.el.toggleClass('find-in-note-empty', total === 0);
 	}

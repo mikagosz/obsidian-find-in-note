@@ -69,11 +69,7 @@ function flatten(root: HTMLElement): { text: string; chunks: TextChunk[] } {
 	const parts: string[] = [];
 	let offset = 0;
 
-	for (
-		let node = walker.nextNode();
-		node !== null;
-		node = walker.nextNode()
-	) {
+	for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
 		const text = node as Text;
 		chunks.push({ node: text, start: offset });
 		parts.push(text.data);
@@ -199,6 +195,5 @@ export function revealIfOffScreen(range: Range, scroller: HTMLElement): void {
 	const below = rect.bottom > view.bottom - margin;
 	if (!above && !below) return;
 
-	scroller.scrollTop +=
-		rect.top - view.top - view.height / 2 + rect.height / 2;
+	scroller.scrollTop += rect.top - view.top - view.height / 2 + rect.height / 2;
 }
