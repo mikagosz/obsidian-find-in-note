@@ -1,10 +1,8 @@
-# Kopiuj do .github/workflows/ci.yml
-#
-# JEDNA wersja Node, nie matryca. Powód: matryca 20/22/24 z szablonu wywalała
-# się na 20, bo uruchamianie plikow .ts wprost wymaga zdejmowania typow, ktore
-# Node ma dopiero od 22.6. Lokalnie przechodzilo, blad przychodzil mailem.
-# Jesli kiedys naprawde bedziesz wspieral wiele wersji — dodaj matryce swiadomie
-# i dopisz "engines.node" w package.json.
+# One Node version, not a matrix. The template's 20/22/24 matrix failed on 20,
+# because running .ts files directly needs type stripping, which Node only has
+# from 22.6. It passed locally and the failure arrived by email.
+# If you ever really support several versions, add the matrix deliberately and
+# declare "engines.node" in package.json.
 
 name: CI
 
@@ -17,7 +15,7 @@ permissions:
   contents: read
 
 jobs:
-  sprawdz:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,19 +25,19 @@ jobs:
           node-version: "22.x"
           cache: npm
 
-      - name: Instalacja
+      - name: Install
         run: npm ci
 
-      - name: Lint i format (Biome)
+      - name: Lint and format (Biome)
         run: npm run lint -- --reporter=github
 
-      - name: Reguly Obsidiana
+      - name: Obsidian rules
         run: npm run lint:obsidian
 
-      - name: Typy
+      - name: Types
         run: npx tsc --noEmit
 
-      - name: Testy
+      - name: Tests
         run: npm run check
 
       - name: Build
