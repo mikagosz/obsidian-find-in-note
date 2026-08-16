@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-find-in-note",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Search the current Obsidian note and highlight every match in place, without unrendering tables or callouts.",
 	"main": "main.js",
 	"type": "module",
