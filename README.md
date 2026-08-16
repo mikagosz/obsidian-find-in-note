@@ -68,6 +68,22 @@ quietly.
 Honest limit: this has not been run on a physical phone. The code paths above are
 deliberate, not incidental, but a real device test is still owed.
 
+## Installing
+
+**Settings → Community plugins → Browse**, search for *Find in Note*, install and
+enable it. Then free Cmd+F as described above — the plugin works from the command
+palette until you do.
+
+<details>
+<summary>Installing by hand, for a pre-release build</summary>
+
+1. Download `main.js`, `manifest.json` and `styles.css` from the latest release.
+2. Put them in `<your vault>/.obsidian/plugins/find-in-note/`.
+3. Enable **Find in Note** in Settings → Community plugins.
+
+A copy installed this way does not update itself.
+</details>
+
 ## Known ceiling
 
 Reading view renders long notes in pieces as they scroll into sight, so matches

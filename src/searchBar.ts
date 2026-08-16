@@ -104,11 +104,6 @@ export class SearchBar {
 		this.el.toggleClass('find-in-note-empty', total === 0);
 	}
 
-	/** Shown when the runtime has no Highlight API to paint with. */
-	setMessage(message: string): void {
-		this.counter.setText(message);
-	}
-
 	destroy(): void {
 		this.el.remove();
 	}

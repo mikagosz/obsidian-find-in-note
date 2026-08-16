@@ -68,7 +68,11 @@ export default class FindInNotePlugin extends Plugin {
 			},
 		});
 
-		void this.announceHotkeyConflict();
+		// A damaged data.json must not turn into an unhandled rejection at start-up:
+		// the notice is a courtesy, not a reason to leave noise in the console.
+		this.announceHotkeyConflict().catch((error: unknown) => {
+			console.error('[find-in-note] could not read the plugin data', error);
+		});
 
 		this.registerEvent(
 			this.app.workspace.on('active-leaf-change', () => {
@@ -218,9 +222,29 @@ export default class FindInNotePlugin extends Plugin {
 		session.host.removeClass(HOST_CLASS);
 		clear();
 
-		if (session.restoreState) {
-			void session.view.leaf.setViewState(session.previousState);
-		}
+		this.restoreView(session);
+	}
+
+	/**
+	 * Put the note back the way it was found. Three things can make that wrong or
+	 * impossible, and none of them may end in silence: the leaf can be gone (the
+	 * tab was closed with the bar open), the call can reject, and the user may
+	 * have switched the mode by hand while searching — in which case their choice
+	 * is newer than ours and wins.
+	 */
+	private restoreView(session: Session): void {
+		if (!session.restoreState) return;
+
+		// A closed tab has nothing to restore into, and asking anyway rejects.
+		if (session.view.leaf.view !== session.view) return;
+
+		// Left preview on their own? Then the mode on screen is theirs, not ours.
+		if (session.view.leaf.getViewState().state?.mode !== 'preview') return;
+
+		session.view.leaf.setViewState(session.previousState).catch((error: unknown) => {
+			console.error('[find-in-note] could not restore the view mode', error);
+			new Notice('Could not put the note back into edit mode.');
+		});
 	}
 }
 
