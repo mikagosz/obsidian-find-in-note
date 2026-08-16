@@ -38,10 +38,18 @@ export function isSupported(): boolean {
 	return registry() !== undefined && highlightConstructor() !== undefined;
 }
 
-interface TextChunk {
-	node: Text;
+/**
+ * Where one text node landed in the flattened note. Split from the node itself so
+ * the placement arithmetic below can be checked without a DOM.
+ */
+export interface ChunkSpan {
 	/** Offset of this node's first character within the flattened note text. */
 	start: number;
+	length: number;
+}
+
+interface TextChunk extends ChunkSpan {
+	node: Text;
 }
 
 /**
@@ -71,7 +79,7 @@ function flatten(root: HTMLElement): { text: string; chunks: TextChunk[] } {
 
 	for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
 		const text = node as Text;
-		chunks.push({ node: text, start: offset });
+		chunks.push({ node: text, start: offset, length: text.data.length });
 		parts.push(text.data);
 		offset += text.data.length;
 	}
@@ -106,15 +114,64 @@ export function matchSpans(text: string, query: string): [number, number][] {
 }
 
 /** Index of the chunk holding `offset`, searching forward from `from`. */
-function chunkAt(chunks: TextChunk[], from: number, offset: number): number {
+function chunkAt(chunks: readonly ChunkSpan[], from: number, offset: number): number {
 	let i = from;
 	while (i < chunks.length) {
 		const chunk = chunks[i];
 		if (chunk === undefined) return -1;
-		if (offset < chunk.start + chunk.node.data.length) return i;
+		if (offset < chunk.start + chunk.length) return i;
 		i++;
 	}
 	return -1;
+}
+
+/** A match placed on the chunks: which node it starts and ends in, and where. */
+export interface RangeSpec {
+	startIndex: number;
+	startOffset: number;
+	endIndex: number;
+	endOffset: number;
+}
+
+/**
+ * Turns flat `[start, end)` spans into positions on the text nodes.
+ *
+ * This is the half of the search that can go wrong without anything saying so: an
+ * offset out by one puts the highlight on the wrong letters, and a match crossing
+ * an element boundary — "zbiór **asercji**", two nodes because part of it is bold
+ * — has to land in two different nodes. Separated from the DOM for exactly the
+ * reason `matchSpans` is: so it can be checked without a browser.
+ */
+export function rangeSpecs(
+	chunks: readonly ChunkSpan[],
+	spans: readonly [number, number][],
+): RangeSpec[] {
+	const specs: RangeSpec[] = [];
+	// Matches arrive in ascending order, so the chunk cursor only moves forward
+	// and the whole pass stays linear instead of rescanning from the top.
+	let cursor = 0;
+
+	for (const [start, end] of spans) {
+		const startIndex = chunkAt(chunks, cursor, start);
+		if (startIndex === -1) break;
+		// `end` is exclusive, so the last character of the match is at `end - 1`.
+		const endIndex = chunkAt(chunks, startIndex, end - 1);
+		if (endIndex === -1) break;
+		cursor = startIndex;
+
+		const startChunk = chunks[startIndex];
+		const endChunk = chunks[endIndex];
+		if (startChunk === undefined || endChunk === undefined) break;
+
+		specs.push({
+			startIndex,
+			startOffset: start - startChunk.start,
+			endIndex,
+			endOffset: end - endChunk.start,
+		});
+	}
+
+	return specs;
 }
 
 /**
@@ -131,24 +188,15 @@ export function findRanges(root: HTMLElement, query: string): Range[] {
 	if (chunks.length === 0) return [];
 
 	const ranges: Range[] = [];
-	// Matches arrive in ascending order, so the chunk cursor only moves forward
-	// and the whole pass stays linear instead of rescanning from the top.
-	let cursor = 0;
 
-	for (const [start, end] of matchSpans(text, query)) {
-		const startIndex = chunkAt(chunks, cursor, start);
-		if (startIndex === -1) break;
-		const endIndex = chunkAt(chunks, startIndex, end - 1);
-		if (endIndex === -1) break;
-		cursor = startIndex;
-
-		const startChunk = chunks[startIndex];
-		const endChunk = chunks[endIndex];
+	for (const spec of rangeSpecs(chunks, matchSpans(text, query))) {
+		const startChunk = chunks[spec.startIndex];
+		const endChunk = chunks[spec.endIndex];
 		if (startChunk === undefined || endChunk === undefined) break;
 
 		const range = document.createRange();
-		range.setStart(startChunk.node, start - startChunk.start);
-		range.setEnd(endChunk.node, end - endChunk.start);
+		range.setStart(startChunk.node, spec.startOffset);
+		range.setEnd(endChunk.node, spec.endOffset);
 		ranges.push(range);
 	}
 
