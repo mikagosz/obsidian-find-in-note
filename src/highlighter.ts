@@ -18,7 +18,12 @@ const CURRENT_LAYER = 'find-in-note-current';
  * relying on the TypeScript DOM lib, which only grew these types recently —
  * this keeps the plugin compiling on whatever lib version is installed.
  */
-type HighlightConstructor = new (...ranges: Range[]) => unknown;
+type HighlightConstructor = new (...ranges: Range[]) => HighlightLike;
+
+/** The set-like side of a Highlight: ranges can be added one by one. */
+interface HighlightLike {
+	add(range: Range): unknown;
+}
 
 interface HighlightRegistry {
 	set(name: string, highlight: unknown): void;
@@ -217,8 +222,23 @@ export function paint(all: Range[], current: Range | undefined): void {
 	reg.delete(CURRENT_LAYER);
 	if (all.length === 0) return;
 
-	reg.set(MATCH_LAYER, new Highlight(...all));
-	if (current) reg.set(CURRENT_LAYER, new Highlight(current));
+	reg.set(MATCH_LAYER, buildHighlight(Highlight, all));
+	if (current) reg.set(CURRENT_LAYER, buildHighlight(Highlight, [current]));
+}
+
+/**
+ * An empty Highlight filled one range at a time.
+ *
+ * `new Highlight(...all)` spread every match into the argument list, and the
+ * engine caps that list: measured in V8, 50 000 arguments pass and 100 000 throw
+ * "Maximum call stack size exceeded". The throw came before the counter was
+ * updated, so a one-letter search in a long note lost its highlights and left a
+ * stale count. Adding in a loop has no such ceiling.
+ */
+export function buildHighlight(Highlight: HighlightConstructor, ranges: readonly Range[]): unknown {
+	const highlight = new Highlight();
+	for (const range of ranges) highlight.add(range);
+	return highlight;
 }
 
 export function clear(): void {
