@@ -97,16 +97,20 @@ more than it buys on the notes this was written for.
 
 ## Development
 
+Requires Node 20 or newer.
+
 ```
 npm install
-npm run dev     # watch build
-npm run check   # the offset arithmetic behind the highlights
-npm run lint    # the Obsidian plugin review rules
-npm run build   # typecheck + check + production bundle
+npm run dev            # watch build
+npm run check          # the tests (Vitest)
+npm run lint           # Biome: formatting and general lint
+npm run lint:obsidian  # the Obsidian plugin review rules
+npm run build          # lint + typecheck + tests + production bundle
 ```
 
-`npm run check` runs without a browser and without a framework: Node strips the
-types and runs `tests/spans.test.ts` directly.
+`npm run check` runs without a browser: the tests cover the logic that does not
+need Obsidian — where a match lands in the text, how it is placed on the page's
+text nodes, building the highlight layer, and opening one search at a time.
 
 ## License
 
