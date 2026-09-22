@@ -1,10 +1,11 @@
 {
 	"id": "find-in-note",
 	"name": "Find in Note",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"minAppVersion": "1.12.7",
 	"description": "Search the current note and highlight every match in place, without unrendering tables, callouts or other blocks.",
 	"author": "mikagosz",
 	"authorUrl": "https://github.com/mikagosz",
+	"fundingUrl": "https://github.com/sponsors/mikagosz",
 	"isDesktopOnly": false
 }
