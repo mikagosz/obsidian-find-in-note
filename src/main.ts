@@ -10,6 +10,7 @@ import {
 } from 'obsidian';
 import { clear, findRanges, isSupported, paint, revealIfOffScreen } from './highlighter';
 import { SearchBar } from './searchBar';
+import { SingleFlight } from './singleFlight';
 
 /** Marks the element the bar is positioned against. */
 const HOST_CLASS = 'find-in-note-host';
@@ -46,6 +47,7 @@ interface Session {
 
 export default class FindInNotePlugin extends Plugin {
 	private session: Session | null = null;
+	private readonly opening = new SingleFlight();
 
 	override onload() {
 		this.addCommand({
@@ -63,7 +65,16 @@ export default class FindInNotePlugin extends Plugin {
 			checkCallback: (checking) => {
 				const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 				if (!view) return false;
-				if (!checking) void this.open(view);
+				if (!checking) {
+					// One opening at a time — see `SingleFlight`. A refused second
+					// press loses nothing: the first one ends by focusing the bar.
+					this.opening
+						.run(() => this.open(view))
+						.catch((error: unknown) => {
+							console.error('[find-in-note] could not open the search', error);
+							new Notice('Could not open the search in this note.');
+						});
+				}
 				return true;
 			},
 		});
