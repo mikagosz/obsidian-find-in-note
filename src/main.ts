@@ -48,6 +48,8 @@ interface Session {
 export default class FindInNotePlugin extends Plugin {
 	private session: Session | null = null;
 	private readonly opening = new SingleFlight();
+	/** Set once the plugin is disabled; an opening still in flight must not outlive it. */
+	private unloaded = false;
 
 	override onload() {
 		this.addCommand({
@@ -98,6 +100,7 @@ export default class FindInNotePlugin extends Plugin {
 	}
 
 	override onunload() {
+		this.unloaded = true;
 		this.close();
 	}
 
@@ -137,6 +140,16 @@ export default class FindInNotePlugin extends Plugin {
 				...previousState,
 				state: { ...previousState.state, mode: 'preview' },
 			});
+
+			// The switch takes a moment and the world can move on meanwhile: the
+			// user can open another note, or disable the plugin. A session built
+			// after either would be orphaned — a bar in a background tab, an Escape
+			// handler swallowing the key in another note, or an observer that
+			// outlives the plugin. Put the note back and build nothing.
+			if (this.unloaded || this.app.workspace.getActiveViewOfType(MarkdownView) !== view) {
+				this.restoreView({ view, previousState, restoreState });
+				return;
+			}
 		}
 
 		const host = view.contentEl;
@@ -243,7 +256,7 @@ export default class FindInNotePlugin extends Plugin {
 	 * have switched the mode by hand while searching — in which case their choice
 	 * is newer than ours and wins.
 	 */
-	private restoreView(session: Session): void {
+	private restoreView(session: Pick<Session, 'view' | 'previousState' | 'restoreState'>): void {
 		if (!session.restoreState) return;
 
 		// A closed tab has nothing to restore into, and asking anyway rejects.
