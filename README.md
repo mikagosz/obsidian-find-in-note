@@ -1,5 +1,7 @@
 # Find in Note
 
+<a href="https://github.com/sponsors/mikagosz"><img src="https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA?logo=githubsponsors&logoColor=white" width="350" alt="Sponsor on GitHub Sponsors"></a>
+
 Search the note you are reading and see every match light up in place — without
 the note changing shape underneath you.
 
