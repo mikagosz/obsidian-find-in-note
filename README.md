@@ -5,6 +5,12 @@
 Search the note you are reading and see every match light up in place — without
 the note changing shape underneath you.
 
+| Light | Dark |
+|---|---|
+| ![Twelve matches of "budget" highlighted in a rendered note: in text, a table header, a callout, a list and a code block](docs/search-light.png) | ![The same search in the dark theme](docs/search-dark.png) |
+
+The table, the callout and the code block stay rendered while every match is highlighted; the current one is shown in a stronger colour.
+
 ## Why
 
 Obsidian's built-in Cmd+F lives inside the editor. To put a highlight on a
