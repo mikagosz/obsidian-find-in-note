@@ -6,7 +6,7 @@
  * search without highlights and with a stale counter.
  */
 import { describe, expect, it } from 'vitest';
-import { buildHighlight } from '../src/highlighter.ts';
+import { buildHighlight, matchSpans } from '../src/highlighter.ts';
 
 /** Stands in for the browser's Highlight: set-like, and it keeps what it was given. */
 class FakeHighlight {
@@ -36,5 +36,12 @@ describe('buildHighlight', () => {
 
 		const built = buildHighlight(HighlightCtor, many) as FakeHighlight;
 		expect(built.ranges).toHaveLength(200_000);
+	});
+});
+
+describe('matchSpans on a query too long to compile', () => {
+	it('finds nothing instead of throwing', () => {
+		expect(() => matchSpans('aaaa', 'a'.repeat(1_000_000))).not.toThrow();
+		expect(matchSpans('aaaa', 'a'.repeat(1_000_000))).toEqual([]);
 	});
 });

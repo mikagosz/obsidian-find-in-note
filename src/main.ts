@@ -109,7 +109,12 @@ export default class FindInNotePlugin extends Plugin {
 		// would be a wall of irrelevant text in front of a small screen.
 		if (Platform.isMobile) return;
 
-		const data = ((await this.loadData()) ?? {}) as PluginData;
+		// Anything but a plain object means "nothing stored": spreading a bare string
+		// back into data.json saved it as {"0": "a", "1": "b", …}.
+		const stored: unknown = await this.loadData();
+		const data = (
+			typeof stored === 'object' && stored !== null && !Array.isArray(stored) ? stored : {}
+		) as PluginData;
 		if (data.hotkeyNoticeShown) return;
 
 		// Duration 0 keeps it up until dismissed. This is the one thing the user

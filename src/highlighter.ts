@@ -107,12 +107,19 @@ function escapeForRegExp(query: string): string {
 export function matchSpans(text: string, query: string): [number, number][] {
 	if (query.length === 0) return [];
 
-	const pattern = new RegExp(escapeForRegExp(query), 'gi');
 	const spans: [number, number][] = [];
 
-	for (const match of text.matchAll(pattern)) {
-		if (match.index === undefined) continue;
-		spans.push([match.index, match.index + match[0].length]);
+	// A query pasted at a million characters is past what the engine compiles —
+	// and V8 compiles on the first match, not in the constructor. The throw used to
+	// escape the input handler, and the bar showed nothing at all.
+	try {
+		const pattern = new RegExp(escapeForRegExp(query), 'gi');
+		for (const match of text.matchAll(pattern)) {
+			if (match.index === undefined) continue;
+			spans.push([match.index, match.index + match[0].length]);
+		}
+	} catch {
+		return [];
 	}
 
 	return spans;
